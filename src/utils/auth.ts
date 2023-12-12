@@ -4,11 +4,11 @@ import { useUserStoreHook } from "@/store/modules/user";
 
 export interface DataInfo<T> {
   /** token */
-  accessToken: string;
+  access_token: string;
   /** `accessToken`的过期时间（时间戳） */
   expires: T;
   /** 用于调用刷新accessToken的接口时所需的token */
-  refreshToken: string;
+  refresh_token: string;
   /** 用户名 */
   username?: string;
   /** 当前登陆用户的角色 */
@@ -34,9 +34,9 @@ export function getToken(): DataInfo<number> {
  */
 export function setToken(data: DataInfo<Date>) {
   let expires = 0;
-  const { accessToken, refreshToken } = data;
+  const { access_token: access_token, refresh_token: refresh_token } = data;
   expires = new Date(data.expires).getTime(); // 如果后端直接设置时间戳，将此处代码改为expires = data.expires，然后把上面的DataInfo<Date>改成DataInfo<number>即可
-  const cookieString = JSON.stringify({ accessToken, expires });
+  const cookieString = JSON.stringify({ access_token, expires });
 
   expires > 0
     ? Cookies.set(TokenKey, cookieString, {
@@ -48,7 +48,7 @@ export function setToken(data: DataInfo<Date>) {
     useUserStoreHook().SET_USERNAME(username);
     useUserStoreHook().SET_ROLES(roles);
     storageSession().setItem(sessionKey, {
-      refreshToken,
+      refresh_token,
       expires,
       username,
       roles

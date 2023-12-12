@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seals-admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: seals-admin
+  template:
+    metadata:
+      labels:
+        app: seals-admin
+    spec:
+      containers:
+        - name: seals-admin
+          image: registry.ap-southeast-1.aliyuncs.com/pdfgpt/seals-admin:v0.0.1
+          ports:
+            - containerPort: 80
+      imagePullSecrets:
+        - name: aliyun-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: seals-admin-svc
+spec:
+  selector:
+    app: seals-admin
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

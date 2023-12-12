@@ -33,31 +33,45 @@ dataThemeChange();
 const { title } = useNav();
 
 const ruleForm = reactive({
-  username: "admin",
-  password: "admin123"
+  username: "",
+  password: ""
 });
+
+const loginUser = async (username: string, password: string) => {
+  const userStore = useUserStoreHook();
+  const response = await userStore.loginByUsername({ username, password });
+  return response;
+};
+
+const initializeRouter = async () => {
+  await initRouter();
+  return getTopMenu(true).path;
+};
 
 const onLogin = async (formEl: FormInstance | undefined) => {
   loading.value = true;
   if (!formEl) return;
-  await formEl.validate((valid, fields) => {
-    if (valid) {
-      useUserStoreHook()
-        .loginByUsername({ username: ruleForm.username, password: "admin123" })
-        .then(res => {
-          if (res.success) {
-            // 获取后端路由
-            initRouter().then(() => {
-              router.push(getTopMenu(true).path);
-              message("登录成功", { type: "success" });
-            });
-          }
-        });
-    } else {
+  try {
+    const valid = await formEl.validate();
+    if (!valid) {
       loading.value = false;
-      return fields;
+      return;
     }
-  });
+
+    const response = await loginUser(ruleForm.username, ruleForm.password);
+    if (response.code !== 0) {
+      message(response.msg, { type: "error" });
+      loading.value = false;
+      return;
+    }
+
+    const path = await initializeRouter();
+    router.push(path);
+    message("登录成功", { type: "success" });
+  } catch (error) {
+    console.error(error);
+    loading.value = false;
+  }
 };
 
 /** 使用公共函数，避免`removeEventListener`失效 */
@@ -100,12 +114,7 @@ onBeforeUnmount(() => {
             <h2 class="outline-none">{{ title }}</h2>
           </Motion>
 
-          <el-form
-            ref="ruleFormRef"
-            :model="ruleForm"
-            :rules="loginRules"
-            size="large"
-          >
+          <el-form ref="ruleFormRef" :model="ruleForm" size="large">
             <Motion :delay="100">
               <el-form-item
                 :rules="[
